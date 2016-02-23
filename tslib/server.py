@@ -389,17 +389,46 @@ class Server(Interface):
     TeamSpeak 3 ServerQuery Connection Interface
     """
 
-    def __init__(self, host, port):
+    def __init__(self, host, port=10011, timeout=None):
         self._RECV_DAEMON_START_REQUIRED = [
             Command.SERVER_NOTIFY_REGISTER,
             Command.SERVERNOTIFYREGISTER
         ]
-        super().__init__(host, port)
+        super().__init__(host, port, timeout)
 
     def send(self, request):
         if request.enum_command in self._RECV_DAEMON_START_REQUIRED:
             self.start_recv_thread()
-        super().send(request)
+        return super().send(request)
+
+    def help(self, command=None):
+        """
+        Provides information about ServerQuery commands. Used without
+        parameters, help lists and briefly describes every command.
+
+        :type command: str
+        :param command: Command
+
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        if command:
+            if isinstance(command, Command):
+                return self.send(Request(Command.HELP)
+                                 .add_parameter(None, command.value))
+            else:
+                return self.send(Request(Command.HELP)
+                                 .add_parameter(None, command))
+        return self.send(Request(Command.HELP))
+
+    def quit(self):
+        """
+        Closes the ServerQuery connection to the TeamSpeak 3 Server instance.
+
+        :rtype: None
+        :return:
+        """
+        self.close()
 
     def login(self, client_login_name, client_login_password):
         """
@@ -407,9 +436,9 @@ class Server(Interface):
         ServerQuery login credentials.
 
         :type client_login_name: str
-        :param client_login_name:
+        :param client_login_name: Username
         :type client_login_password: str
-        :param client_login_password:
+        :param client_login_password: Password
 
         :rtype: :class:`tslib.response.Response`
         :return: Response object
@@ -503,17 +532,20 @@ class Server(Interface):
         port, use will select a random virtual server using the specified port.
 
         :type sid: int
-        :param sid:
+        :param sid: Server ID
         :type port: int
-        :param port:
+        :param port: Server port
         :type virtual: bool
         :param virtual:
 
         :rtype: :class:`tslib.response.Response`
         :return: Response object
         """
+        if sid:
+            return self.send(Request(Command.USE)
+                             .add_parameter("sid", sid)
+                             .add_option("virtual", virtual))
         return self.send(Request(Command.USE)
-                         .add_parameter("sid", sid)
                          .add_parameter("port", port)
                          .add_option("virtual", virtual))
 
@@ -560,7 +592,7 @@ class Server(Interface):
         specified by *virtualserver_port*.
 
         :type virtualserver_port: int
-        :param virtualserver_port:
+        :param virtualserver_port: Server port
 
         :rtype: :class:`tslib.response.Response`
         :return: Response object
@@ -575,7 +607,7 @@ class Server(Interface):
         virtual servers in stopped state can be deleted.
 
         :type sid: int
-        :param sid:
+        :param sid: Server ID
 
         :rtype: :class:`tslib.response.Response`
         :return: Response object
@@ -594,7 +626,7 @@ class Server(Interface):
         port numbers.
 
         :type virtualserver_name: str
-        :param virtualserver_name:
+        :param virtualserver_name: Server name
 
         :rtype: :class:`tslib.response.Response`
         :return: Response object
@@ -611,7 +643,7 @@ class Server(Interface):
         all virtual servers in the server instance.
 
         :type sid: int
-        :param sid:
+        :param sid: Server ID
 
         :rtype: :class:`tslib.response.Response`
         :return: Response object
@@ -626,7 +658,7 @@ class Server(Interface):
         all virtual servers in the server instance.
 
         :type sid: int
-        :param sid:
+        :param sid: Server ID
 
         :rtype: :class:`tslib.response.Response`
         :return: Response object
@@ -665,17 +697,58 @@ class Server(Interface):
         """
         return self.send(Request(Command.SERVER_REQUEST_CONNECTION_INFO))
 
-    # TODO: Implement functionality
-    def server_temp_password_add(self):
-        raise NotImplementedError
+    def server_temp_password_add(self, pw, desc, duration, tcid=0, tcpw=""):
+        """
+        Sets a new temporary server password specified with *pw*. The temporary
+        password will be valid for the number of seconds specified with
+        duration. The client connecting with this password will automatically
+        join the channel specified with *tcid*. If *tcid* is set to 0, the
+        client will join the default channel.
 
-    # TODO: Implement functionality
-    def server_temp_password_del(self):
-        raise NotImplementedError
+        :type pw: str
+        :param pw: Password
+        :type desc: str
+        :param desc: Description
+        :type duration: int
+        :param duration: Seconds
+        :type tcid: int
+        :param tcid: Channel ID
+        :type tcpw: str
+        :param tcpw: Channel password
 
-    # TODO: Implement functionality
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.SERVER_TEMP_PASSWORD_ADD)
+                         .add_parameter("pw", pw)
+                         .add_parameter("desc", desc)
+                         .add_parameter("duration", duration)
+                         .add_parameter("tcid", tcid)
+                         .add_parameter("tcpw", tcpw))
+
+    def server_temp_password_del(self, pw):
+        """
+        Deletes the temporary server password specified with *pw*.
+
+        :type pw: str
+        :param pw: Password
+
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.SERVER_TEMP_PASSWORD_DEL)
+                         .add_parameter("pw", pw))
+
     def server_temp_password_list(self):
-        raise NotImplementedError
+        """
+        Returns a list of active temporary server passwords. The output
+        contains the clear-text password, the nickname and unique identifier of
+        the creating client.
+
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.SERVER_TEMP_PASSWORD_LIST))
 
     def server_edit(self, **virtualserver_properties):
         """
@@ -709,9 +782,9 @@ class Server(Interface):
         ServerQuery groups and template groups.
 
         :type name: str
-        :param name:
-        :type type: int
-        :param type:
+        :param name: Group name
+        :type type: int|:class:`tslib.server.PermissionGroupDatabaseTypes`
+        :param type: Group DB type
 
         :rtype: :class:`tslib.response.Response`
         :return: Response object
@@ -726,7 +799,7 @@ class Server(Interface):
         the server group will be deleted even if there are clients within.
 
         :type sgid: int
-        :param sgid:
+        :param sgid: Group ID
         :type force: bool
         :param force:
 
@@ -739,20 +812,20 @@ class Server(Interface):
 
     def server_group_copy(self, ssgid, tsgid, name, type):
         """
-        Creates a copy of the server group specified with *ssgid*. If *tsgid* is
-        set to 0, the server will create a new group.
+        Creates a copy of the server group specified with *ssgid*. If *tsgid*
+        is set to 0, the server will create a new group.
         To overwrite an existing group, simply set *tsgid* to the ID of a
         designated target group. If a target group is set, the *name* parameter
         will be ignored.
 
         :type ssgid: int
-        :param ssgid:
+        :param ssgid: Source group ID
         :type tsgid: int
-        :param tsgid:
+        :param tsgid: Target group ID
         :type name: str
-        :param name:
-        :type type: :class:`tslib.server.Server.PermissionGroupDatabaseTypes`
-        :param type:
+        :param name: Group name
+        :type type: int|:class:`tslib.server.PermissionGroupDatabaseTypes`
+        :param type: Group DB type
 
         :rtype: :class:`tslib.response.Response`
         :return: Response object
@@ -761,16 +834,16 @@ class Server(Interface):
                          .add_parameter("ssgid", ssgid)
                          .add_parameter("tsgid", tsgid)
                          .add_parameter("name", name)
-                         .add_parameter("type", type.value))
+                         .add_parameter("type", type))
 
     def server_group_rename(self, sgid, name):
         """
         Changes the name of the server group specified with *sgid*.
 
         :type sgid: int
-        :param sgid:
+        :param sgid: Group ID
         :type name: str
-        :param name:
+        :param name: Group name
 
         :rtype: :class:`tslib.response.Response`
         :return: Response object
@@ -786,7 +859,7 @@ class Server(Interface):
         contain the permission names instead of the internal IDs.
 
         :type sgid: int
-        :param sgid:
+        :param sgid: Group ID
         :type permsid: bool
         :param permsid:
 
@@ -801,11 +874,11 @@ class Server(Interface):
         """
         Adds a set of specified permissions to the server group specified with
         *sgid*. Multiple permissions can be added by providing the four
-        parameters of each permission. A permission can be specified by *permid*
-        or *permsid*.
+        parameters of each permission. A permission can be specified by
+        *permid* or *permsid*.
 
         :type sgid: int
-        :param sgid:
+        :param sgid: Group ID
         :type permissions_set: dict
         :param permissions_set:
 
@@ -823,7 +896,7 @@ class Server(Interface):
         can be specified by *permid* or *permsid*.
 
         :type sgid: int
-        :param sgid:
+        :param sgid: Group ID
         :type permissions_set: dict
         :param permissions_set:
 
@@ -840,9 +913,9 @@ class Server(Interface):
         that a client cannot be added to default groups or template groups.
 
         :type sgid: int
-        :param sgid:
+        :param sgid: Group ID
         :type cldbid: int
-        :param cldbid:
+        :param cldbid: Client DB ID
 
         :rtype: :class:`tslib.response.Response`
         :return: Response object
@@ -857,9 +930,9 @@ class Server(Interface):
         specified with *sgid*.
 
         :type sgid: int
-        :param sgid:
+        :param sgid: Group ID
         :type cldbid: int
-        :param cldbid:
+        :param cldbid: Client DB ID
 
         :rtype: :class:`tslib.response.Response`
         :return: Response object
@@ -876,7 +949,7 @@ class Server(Interface):
         identifier of the clients.
 
         :type sgid: int
-        :param sgid:
+        :param sgid: Group ID
         :type names: bool
         :param names:
 
@@ -893,7 +966,7 @@ class Server(Interface):
         currently residing in.
 
         :type cldbid: int
-        :param cldbid:
+        :param cldbid: Client DB ID
 
         :rtype: :class:`tslib.response.Response`
         :return: Response object
@@ -901,13 +974,94 @@ class Server(Interface):
         return self.send(Request(Command.SERVER_GROUPS_BY_CLIENT_ID)
                          .add_parameter("cldbid", cldbid))
 
-    # TODO: Implement function
-    def server_group_auto_add_perm(self, sgtype):
-        raise NotImplementedError()
+    def server_group_auto_add_perm(self, sgtype, permvalue, permnegated=False,
+                                   permskip=False, permid=None, permsid=None):
+        """
+        Adds a set of specified permissions to *ALL* regular server groups on
+        all virtual servers. The target groups will be identified by the value
+        of their *i_group_auto_update_type* permission specified with *sgtype*.
+        Multiple permissions can be added at once. A permission can be
+        specified by *permid* or *permsid*. The known values for *sgtype* are:
+        10: Channel Guest
+        15: Server Guest
+        20: Query Guest
+        25: Channel Voice
+        30: Server Normal
+        35: Channel Operator
+        40: Channel Admin
+        45: Server Admin
+        50: Query Admin
 
-    # TODO: Implement function
-    def server_group_auto_del_perm(self, sgtype):
-        raise NotImplementedError()
+        :type sgtype: int|:class:`tslib.server.GroupType`
+        :param sgtype: Group type
+        :type permid_or_permsid: int|str
+        :param permid_or_permsid: Permission ID or name
+        :type permid: int
+        :param permid: Permission ID
+        :type permsid: str
+        :param permsid: Permission name
+        :type permvalue: str|int|bool
+        :param permvalue: Permission value
+        :type permnegated: bool
+        :param permnegated:
+        :type permskip: bool
+        :param permskip:
+
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        if permid is None and permsid is None:
+            return MissedParameterError(
+                "*permid* or *permsid* must be specified")
+
+        if permid:
+            return self.send(Request(Command.SERVER_GROUP_AUTO_ADD_PERM)
+                             .add_parameter("sgtype", sgtype)
+                             .add_parameter("permid", permid)
+                             .add_parameter("permvalue", permvalue)
+                             .add_parameter("permnegated", permnegated)
+                             .add_parameter("permsip", permskip))
+        else:
+            return self.send(Request(Command.SERVER_GROUP_AUTO_ADD_PERM)
+                             .add_parameter("sgtype", sgtype)
+                             .add_parameter("permsid", permsid)
+                             .add_parameter("permvalue", permvalue)
+                             .add_parameter("permnegated", permnegated)
+                             .add_parameter("permsip", permskip))
+
+    def server_group_auto_del_perm(self, sgtype, permid=None, permsid=None):
+        """
+        Removes a set of specified permissions from *ALL* regular server groups
+        on all virtual servers. The target groups will be identified by the
+        value of their *i_group_auto_update_type permission* specified with
+        *sgtype*. Multiple permissions can be removed at once. A permission can
+        be specified by *permid* or *permsid*. The known values for *sgtype*
+        are:
+        10: Channel Guest
+        15: Server Guest
+        20: Query Guest
+        25: Channel Voice
+        30: Server Normal
+        35: Channel Operator
+        40: Channel Admin
+        45: Server Admin
+        50: Query Admin
+
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        if permid is None and permsid is None:
+            return MissedParameterError(
+                "*permid* or *permsid* must be specified")
+
+        if permid:
+            return self.send(Request(Command.SERVER_GROUP_AUTO_ADD_PERM)
+                             .add_parameter("sgtype", sgtype)
+                             .add_parameter("permid", permid))
+        else:
+            return self.send(Request(Command.SERVER_GROUP_AUTO_ADD_PERM)
+                             .add_parameter("sgtype", sgtype)
+                             .add_parameter("permsid", permsid))
 
     def server_snapshot_create(self):
         """

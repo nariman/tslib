@@ -78,9 +78,9 @@ class Request:
             self._build_request_string()
         return self._request_string
 
-    def add_parameter(self, key, val=None):
+    def add_parameter(self, key, val):
         """
-        :type key: str|int|bool|None
+        :type key: str|int|bool|Enum|None
         :param key:
         :type val: str|int|bool|Enum|None
         :param key:
@@ -88,8 +88,17 @@ class Request:
         :rtype: :class:`tslib.request.Request`
         :return: Updated request object
         """
-        self._parameters.update(
-            {key: val.value if isinstance(val, Enum) else val})
+        if val is None:
+            return self
+
+        key = key.value if isinstance(key, Enum) else key
+        val = val.value if isinstance(val, Enum) else val
+
+        if not key:
+            self._parameters.update({val: None})
+        else:
+            self._parameters.update({key: val})
+
         self._is_request_string_actual = False
         return self
 
@@ -220,7 +229,7 @@ class Request:
                 if not key:
                     tmp.append(Request.escape(val))
                 elif not val:
-                    tmp.append(key)
+                    tmp.append(Request.escape(key))
                 else:
                     # tmp.append(Request.escape_pair((key, val)))
                     tmp.append(

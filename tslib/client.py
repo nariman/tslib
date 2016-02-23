@@ -238,17 +238,17 @@ class Client(Interface):
     TeamSpeak 3 ClientQuery Connection Interface
     """
 
-    def __init__(self, host, port):
+    def __init__(self, host, port=25639, timeout=None):
         self._RECV_DAEMON_START_REQUIRED = [
             Command.SERVER_NOTIFY_REGISTER,
             Command.SERVERNOTIFYREGISTER
         ]
-        super().__init__(host, port)
+        super().__init__(host, port, timeout)
 
     def send(self, request):
         if request.enum_command in self._RECV_DAEMON_START_REQUIRED:
             self.start_recv_thread()
-        super().send(request)
+        return super().send(request)
 
     def ban_add(self):
         raise NotImplementedError

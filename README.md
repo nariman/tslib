@@ -4,8 +4,8 @@ In testing stage... Don't use this in production!
 
 ## Python Support
 
-The development is on Python 3.5
-Python 2.7 requires some improvements in code
+The development is on Python 3.5  
+Python 2.7 requires some improvements in code  
 In the roadmap - support for Python 2.7 and testing on Python 3.4
 
 ## License

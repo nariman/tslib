@@ -390,12 +390,16 @@ class Server(Interface):
     """
 
     def __init__(self, host, port):
+        self._RECV_DAEMON_START_REQUIRED = [
+            Command.SERVER_NOTIFY_REGISTER,
+            Command.SERVERNOTIFYREGISTER
+        ]
         super().__init__(host, port)
-        self._RECV_DAEMON_START_REQUIRED = []
 
     def send(self, request):
         if request.enum_command in self._RECV_DAEMON_START_REQUIRED:
             self.start_recv_thread()
+        super().send(request)
 
     def login(self, client_login_name, client_login_password):
         """
@@ -1162,7 +1166,6 @@ class Server(Interface):
         """
         return self.send(Request(Command.CLIENT_INFO)
                          .add_parameter("clid", clid))
-
 
     # TODO: Implement functionality    # TODO
     def client_find(self):

@@ -220,9 +220,9 @@ class Connection:
             self._keep_alive_interval = max(1, interval)
 
         self._keep_alive_thread = threading.Thread(
-            target=self.__keep_alive, name="TeamSpeak 3 Beacon Sender Daemon")
+            target=self.__keep_alive, name="TeamSpeak 3 Beacon Sender Thread")
         self._keep_alive_thread.start()
-        logger.info("Keep-Alive Beacon Timer with interval {0} sec. started - "
+        logger.info("Keep-Alive Beacon Sender with interval {0} sec. started - "
                     "{1}:{2}".format(self._keep_alive_interval, self._host,
                                      self._port))
         return True
@@ -239,9 +239,10 @@ class Connection:
             self._keep_alive_stop_signal.set()
             self._keep_alive_stop_signal = None
             self._keep_alive_thread = None
-            logger.info("Keep-Alive Beacon Timer with interval {0} sec. stopped"
-                        " - {1}:{2}".format(self._keep_alive_interval,
-                                            self._host, self._port))
+            logger.info(
+                "Keep-Alive Beacon Sender with interval {0} sec. stopped - "
+                "{1}:{2}".format(self._keep_alive_interval, self._host,
+                                 self._port))
         return True
 
     """
@@ -499,10 +500,10 @@ class Interface:
 
         self._recv_thread_stop_signal = threading.Event()
         self._recv_thread = threading.Thread(target=self.__recv(),
-                                             name="TeamSpeak 3 Receiver Daemon")
+                                             name="TeamSpeak 3 Receiver Thread")
         self._recv_thread.start()
 
-        logger.info("Receiver Daemon started ({1})".format(self._conn))
+        logger.info("Receiver Thread started ({1})".format(self._conn))
         return True
 
     def stop_recv_thread(self):
@@ -517,5 +518,5 @@ class Interface:
             self._recv_thread.join()
             self._recv_thread_stop_signal = None
             self._recv_thread = None
-            logger.info("Receiver Daemon stopped ({1})".format(self._conn))
+            logger.info("Receiver Thread stopped ({1})".format(self._conn))
         return True

@@ -39,40 +39,17 @@ class TSLibException(Exception):
     pass
 
 
-class ResponseExpectedError(TSLibException):
-    """
-    Исключение для случаев, когда мы не смогли дождаться ответа от сервера на
-    наш запрос. Т.к. он может неожиданно прийти между началом обработки
-    следующего запроса, и создать коллизию ответов от сервера, то вместо
-    поддержания соединения будет создано исключение, а соединение разорвано.
-    """
-    pass
-
-
-class UnexpectedLineError(TSLibException):
-    """
-    Исключение для случаев, когда мы не смогли дождаться ответа от сервера на
-    наш запрос. Т.к. он может неожиданно прийти между началом обработки
-    следующего запроса, и создать коллизию ответов от сервера, то вместо
-    поддержания соединения будет создано исключение, а соединение разорвано.
-    """
-    pass
-
-
 class RequestException(TSLibException):
     """
     Base exception for requests
     """
+
     def __init__(self, request=None):
         self._request = request
 
     @property
     def request(self):
         return self._request
-
-
-class MissedParameterError(RequestException):
-    pass
 
 
 class ResponseException(TSLibException):
@@ -88,12 +65,34 @@ class ResponseException(TSLibException):
         return self._response
 
 
+class MissedParameterError(RequestException):
+    pass
+
+
+class ResponseExpectedError(ResponseException):
+    """
+    Исключение для случаев, когда мы не смогли дождаться ответа от сервера на
+    наш запрос. Т.к. он может неожиданно прийти между началом обработки
+    следующего запроса, и создать коллизию ответов от сервера, то вместо
+    поддержания соединения будет создано исключение, а соединение разорвано.
+    """
+    pass
+
+
+class UnexpectedLineError(ResponseException):
+    """
+    Исключение для случаев, когда мы не смогли дождаться ответа от сервера на
+    наш запрос. Т.к. он может неожиданно прийти между началом обработки
+    следующего запроса, и создать коллизию ответов от сервера, то вместо
+    поддержания соединения будет создано исключение, а соединение разорвано.
+    """
+    pass
+
+
 class UnknownEventTypeError(ResponseException):
     """
     Исключение для случаев, когда тип события не определен. В идеале, такой
     ошибки быть не должно, мы должны знать все типы событий. Если что-то
     упустили - время делать Pull Request.
     """
-
-    def __init__(self, response):
-        super().__init__(response)
+    pass

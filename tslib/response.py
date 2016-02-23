@@ -36,6 +36,44 @@ from tslib.exception import UnknownEventTypeError
 logger = logging.getLogger(__name__)
 
 
+# TODO: Check all types of events
+class EventType(Enum):
+    SERVER_EDITED = "notifyserveredited"
+    CHANNEL_CREATED = "notifychannelcreated"
+    CHANNEL_EDITED = "notifychanneledited"
+    CHANNEL_DESCRIPTION_CHANGED = "notifychanneldescriptionchanged"
+    CHANNEL_PASSWORD_CHANGED = "notifychannelpasswordchanged"
+    CHANNEL_MOVED = "notifychannelmoved"
+    CHANNEL_DELETED = "notifychanneldeleted"
+    CLIENT_ENTER = "notifycliententerview"
+    CLIENT_LEFT = "notifyclientleftview"
+    CLIENT_MOVED = "notifyclientmoved"
+    TEXT_MESSAGE = "notifytextmessage"
+    # Client Query Only ??
+    TALK_STATUS_CHANGE = "notifytalkstatuschange"
+    MESSAGE = "notifymessage"
+    MESSAGE_LIST = "notifymessagelist"
+    COMPLAIN_LIST = "notifycomplainlist"
+    BAN_LIST = "notifybanlist"
+    CLIENT_LEFT_VIEW = "notifyclientleftview"
+    CLIENT_ENTER_VIEW = "notifycliententerview"
+    CLIENT_POKE = "notifyclientpoke"
+    CLIENT_CHAT_CLOSED = "notifyclientchatclosed"
+    CLIENT_CHAT_COMPOSING = "notifyclientchatcomposing"
+    CLIENT_UPDATED = "notifyclientupdated"
+    CLIENT_IDS = "notifyclientids"
+    CLIENT_DBID_FROM_UID = "notifyclientdbidfromuid"
+    CLIENT_NAME_FROM_UID = "notifyclientnamefromuid"
+    CLIENT_NAME_FROM_DBID = "notifyclientnamefromdbid"
+    CLIENT_UID_FROM_CLID = "notifyclientuidfromclid"
+    CONNECTION_INFO = "notifyconnectioninfo"
+    SERVER_UPDATED = "notifyserverupdated"
+    CHANNEL_LIST = "channellist"
+    CHANNEL_LIST_FINISHED = "channellistfinished"
+    CURRENT_SERVER_CONNECTION_CHANGED = "notifycurrentserverconnectionchanged"
+    CONNECT_STATUS_CHANGE = "notifyconnectstatuschange"
+
+
 class BaseResponse(metaclass=abc.ABCMeta):
     """
     Base response object
@@ -225,44 +263,6 @@ class Event(BaseResponse):
     Event response
     """
 
-    # TODO: Check all types of events
-    class EventType(Enum):
-        SERVER_EDITED = "notifyserveredited"
-        CHANNEL_CREATED = "notifychannelcreated"
-        CHANNEL_EDITED = "notifychanneledited"
-        CHANNEL_DESCRIPTION_CHANGED = "notifychanneldescriptionchanged"
-        CHANNEL_PASSWORD_CHANGED = "notifychannelpasswordchanged"
-        CHANNEL_MOVED = "notifychannelmoved"
-        CHANNEL_DELETED = "notifychanneldeleted"
-        CLIENT_ENTER = "notifycliententerview"
-        CLIENT_LEFT = "notifyclientleftview"
-        CLIENT_MOVED = "notifyclientmoved"
-        TEXT_MESSAGE = "notifytextmessage"
-        # Client Query Only ??
-        TALK_STATUS_CHANGE = "notifytalkstatuschange"
-        MESSAGE = "notifymessage"
-        MESSAGE_LIST = "notifymessagelist"
-        COMPLAIN_LIST = "notifycomplainlist"
-        BAN_LIST = "notifybanlist"
-        CLIENT_LEFT_VIEW = "notifyclientleftview"
-        CLIENT_ENTER_VIEW = "notifycliententerview"
-        CLIENT_POKE = "notifyclientpoke"
-        CLIENT_CHAT_CLOSED = "notifyclientchatclosed"
-        CLIENT_CHAT_COMPOSING = "notifyclientchatcomposing"
-        CLIENT_UPDATED = "notifyclientupdated"
-        CLIENT_IDS = "notifyclientids"
-        CLIENT_DBID_FROM_UID = "notifyclientdbidfromuid"
-        CLIENT_NAME_FROM_UID = "notifyclientnamefromuid"
-        CLIENT_NAME_FROM_DBID = "notifyclientnamefromdbid"
-        CLIENT_UID_FROM_CLID = "notifyclientuidfromclid"
-        CONNECTION_INFO = "notifyconnectioninfo"
-        SERVER_UPDATED = "notifyserverupdated"
-        CHANNEL_LIST = "channellist"
-        CHANNEL_LIST_FINISHED = "channellistfinished"
-        CURRENT_SERVER_CONNECTION_CHANGED = \
-            "notifycurrentserverconnectionchanged"
-        CONNECT_STATUS_CHANGE = "notifyconnectstatuschange"
-
     def __init__(self, raw, query=None):
         self._type = None
         super().__init__(raw, query)
@@ -272,7 +272,7 @@ class Event(BaseResponse):
         return self._type
 
     def _parse(self):
-        for member in Event.EventType.__members__.values():
+        for member in EventType.__members__.values():
             if self.raw.startswith(member.value):
                 self._type = member
                 break

@@ -39,6 +39,13 @@ class TSLibException(Exception):
     pass
 
 
+class ConnectionError(TSLibException):
+    """
+    Python 2.7
+    """
+    pass
+
+
 class RequestException(TSLibException):
     """
     Base exception for requests

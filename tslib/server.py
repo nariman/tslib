@@ -394,12 +394,12 @@ class Server(Interface):
             Command.SERVER_NOTIFY_REGISTER,
             Command.SERVERNOTIFYREGISTER
         ]
-        super().__init__(host, port, timeout)
+        super(Server, self).__init__(host, port, timeout)
 
     def send(self, request):
         if request.enum_command in self._RECV_DAEMON_START_REQUIRED:
             self.start_recv_thread()
-        return super().send(request)
+        return super(Server, self).send(request)
 
     def help(self, command=None):
         """
@@ -994,8 +994,6 @@ class Server(Interface):
 
         :type sgtype: int|:class:`tslib.server.GroupType`
         :param sgtype: Group type
-        :type permid_or_permsid: int|str
-        :param permid_or_permsid: Permission ID or name
         :type permid: int
         :param permid: Permission ID
         :type permsid: str

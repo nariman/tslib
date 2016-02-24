@@ -27,20 +27,27 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import sys
 import logging
 import threading
 import time
-from queue import Queue
 from telnetlib import Telnet
 
 from tslib.exception import ResponseExpectedError, UnexpectedLineError
 from tslib.request import Request
 from tslib.response import Event, Response
 
+if sys.version_info >= (3, 0):
+    from queue import Queue
+else:
+    from Queue import Queue
+    from tslib.exception import ConnectionError
+
 logger = logging.getLogger(__name__)
+event_cls = threading.Event if sys.version_info >= (3, 0) else threading._Event
 
 
-class Connection:
+class Connection(object):
     """
     Connection class for TeamSpeak 3 servers/clients
     """
@@ -292,15 +299,15 @@ class Connection:
             raise
 
 
-class Interface:
+class Interface(object):
     """
     TeamSpeak 3 Request Connection Interface
     """
     RECV_DAEMON_INTERVAL = 0.1
 
-    class Request(threading.Event):
+    class Request(event_cls):
         def __init__(self, request):
-            super().__init__()
+            super(Interface.Request, self).__init__()
             self.request = request
             self.response = None
 
@@ -456,7 +463,7 @@ class Interface:
                 # Notify
                 elif line.startswith("notify"):
                     self._event_handlers(Event(line))
-                    lines.clear()
+                    lines = list()
                 # Status line
                 elif line.startswith("error"):
                     lines.append(line)

@@ -243,12 +243,12 @@ class Client(Interface):
             Command.SERVER_NOTIFY_REGISTER,
             Command.SERVERNOTIFYREGISTER
         ]
-        super().__init__(host, port, timeout)
+        super(Client, self).__init__(host, port, timeout)
 
     def send(self, request):
         if request.enum_command in self._RECV_DAEMON_START_REQUIRED:
             self.start_recv_thread()
-        return super().send(request)
+        return super(Client, self).send(request)
 
     def ban_add(self):
         raise NotImplementedError

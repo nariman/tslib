@@ -74,10 +74,11 @@ class EventType(Enum):
     CONNECT_STATUS_CHANGE = "notifyconnectstatuschange"
 
 
-class BaseResponse(metaclass=abc.ABCMeta):
+class BaseResponse(object):
     """
     Base response object
     """
+    __metaclass__ = abc.ABCMeta
 
     # Unescape Map. Order is important.
     _UNESCAPE_MAP = [
@@ -253,9 +254,9 @@ class Response(BaseResponse):
             self._data = self.parse_set(self._raw[0])
             if len(self._data) == 1:
                 self._data = self._data[0]
-            self._error = self.parse_list(self._raw[1].split(maxsplit=1)[1])
+            self._error = self.parse_list(self._raw[1].split(" ", 1)[1])
         else:
-            self._error = self.parse_list(self._raw[0].split(maxsplit=1)[1])
+            self._error = self.parse_list(self._raw[0].split(" ", 1)[1])
 
 
 class Event(BaseResponse):
@@ -265,7 +266,7 @@ class Event(BaseResponse):
 
     def __init__(self, raw, query=None):
         self._type = None
-        super().__init__(raw, query)
+        super(Event, self).__init__(raw, query)
 
     @property
     def type(self):

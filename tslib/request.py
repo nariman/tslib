@@ -34,7 +34,7 @@ from enum import Enum
 logger = logging.getLogger(__name__)
 
 
-class Request:
+class Request(object):
     """
     Request object
     """
@@ -289,7 +289,7 @@ class Request:
 class EnumRequest(Request):
     def __init__(self, command):
         self._enum_command = command
-        super().__init__(command.value)
+        super(EnumRequest, self).__init__(command.value)
 
     @property
     def enum_command(self):

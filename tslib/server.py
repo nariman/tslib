@@ -1107,9 +1107,9 @@ class Server(Interface):
         limit the notifications to a specific channel.
 
         :type event: :class:`tslib.server.Server.EventType`
-        :param event:
+        :param event: Event type
         :type id: int
-        :param id:
+        :param id: Channel ID
 
         :rtype: :class:`tslib.response.Response`
         :return: Response object
@@ -1138,9 +1138,26 @@ class Server(Interface):
         """
         return self.send(Request(Command.SERVER_NOTIFY_UNREGISTER))
 
-    # TODO: Implement functionality
-    def send_text_message(self):
-        raise NotImplementedError
+    def send_text_message(self, target_mode, target, msg):
+        """
+        Sends a text message to a specified target. If *targetmode* is set to
+        1, a message is sent to the client with the ID specified by *target*.
+        If *targetmode* is set to 2 or 3, the *target* parameter will be
+        ignored and a message is sent to the current channel or server
+        respectively.
+
+        :type target_mode: int|:class:`tslib.server.TextMessageTargetMode`
+        :param target_mode: Target mode
+        :type target: int
+        :param target: Client ID
+        :type msg: str
+        :param msg: Text
+        :return:
+        """
+        return self.send(Request(Command.SEND_TEXT_MESSAGE)
+                         .add_parameter("targetmode", target_mode)
+                         .add_parameter("target", target)
+                         .add_parameter("msg", msg))
 
     # TODO: Implement functionality
     def log_view(self):

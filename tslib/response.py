@@ -74,7 +74,7 @@ class EventType(Enum):
     CONNECT_STATUS_CHANGE = "notifyconnectstatuschange"
 
 
-class BaseResponse(object):
+class BaseResponse:
     """
     Base response object
     """

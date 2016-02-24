@@ -34,10 +34,11 @@ from enum import Enum
 logger = logging.getLogger(__name__)
 
 
-class Request(object):
+class Request:
     """
     Request object
     """
+    __metaclass__ = type
 
     # Escape Map. Order is important.
     _ESCAPE_MAP = [

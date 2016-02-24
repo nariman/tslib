@@ -47,10 +47,12 @@ logger = logging.getLogger(__name__)
 event_cls = threading.Event if sys.version_info >= (3, 0) else threading._Event
 
 
-class Connection(object):
+class Connection:
     """
     Connection class for TeamSpeak 3 servers/clients
     """
+    __metaclass__ = type
+    
     CONNECTION_TIMEOUT = 1
     KEEP_ALIVE_INTERVAL = 300
 
@@ -299,10 +301,12 @@ class Connection(object):
             raise
 
 
-class Interface(object):
+class Interface:
     """
     TeamSpeak 3 Request Connection Interface
     """
+    __metaclass__ = type
+    
     RECV_DAEMON_INTERVAL = 0.1
 
     class Request(event_cls):

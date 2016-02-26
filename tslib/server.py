@@ -39,7 +39,6 @@ logger = logging.getLogger(__name__)
 Enumerations
 """
 
-
 class Command(Enum):
     HELP = "help"
     QUIT = "quit"
@@ -382,7 +381,6 @@ class TokenType(Enum):
 """
 Interface
 """
-
 
 class Server(Interface):
     """
@@ -1150,24 +1148,63 @@ class Server(Interface):
         :param target: Client ID
         :type msg: str
         :param msg: Text
-        :return:
+
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
         """
         return self.send(Request(Command.SEND_TEXT_MESSAGE)
                          .add_parameter("targetmode", target_mode)
                          .add_parameter("target", target)
                          .add_parameter("msg", msg))
 
-    # TODO: Implement functionality
-    def log_view(self):
+    def log_view(self, lines=False, reverse=False, instance=False,
+                 begin_pos=False):
+        """
+        Displays a specified number of entries from the servers log. If
+        *instance* is set to 1, the server will return lines from the master
+        logfile (ts3server_0.log) instead of the selected virtual server
+        logfile.
+
+        :type lines: int
+        :param lines: Number of lines
+        :type reverse: bool
+        :param reverse:
+        :type instance: bool
+        :param instance:
+        :type begin_pos: int
+        :param begin_pos: Begin position
+
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
         raise NotImplementedError
 
-    # TODO: Implement functionality
-    def log_add(self):
-        raise NotImplementedError
+    def log_add(self, loglvl, logmsg):
+        """
+        Writes a custom entry into the servers log. Depending on your
+        permissions, you'll be able to add entries into the server instance log
+        and/or your virtual servers log. The loglevel parameter specifies the
+        type of the entry.
 
-    # TODO: Implement functionality
-    def gm(self):
-        raise NotImplementedError
+        :type loglvl: int
+        :param loglvl: int|:class:`tslib.server.LogLevel`
+        :type logmsg: str
+        :param logmsg: Log message
+        """
+        return self.send(Request(Command.LOG_ADD)
+                         .add_parameter("loglvl", loglvl)
+                         .add_parameter("logmsg", logmsg))
+
+    def gm(self, msg):
+        """
+        Sends a text message to all clients on all virtual servers in the
+        TeamSpeak 3 Server instance.
+
+        :type msg: str
+        :param msg: Message
+        """
+        return self.send(Request(Command.GM)
+                         .add_parameter("msg", msg))
 
     def channel_list(self, topic=False, flags=False, voice=False, limits=False,
                      icon=False):

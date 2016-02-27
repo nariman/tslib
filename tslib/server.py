@@ -263,8 +263,7 @@ class Server(Interface):
 
     def __init__(self, host, port=10011, timeout=None):
         self._RECV_DAEMON_START_REQUIRED = [
-            Command.SERVER_NOTIFY_REGISTER,
-            Command.SERVERNOTIFYREGISTER
+            Command.SERVER_NOTIFY_REGISTER
         ]
         super(Server, self).__init__(host, port, timeout)
 
@@ -373,7 +372,7 @@ class Server(Interface):
         """
         return self.send(Request(Command.INSTANCE_INFO))
 
-    def instance_edit(self, **instance_properties):
+    def instance_edit(self, **properties):
         """
         Changes the server instance configuration using given properties.
 
@@ -396,7 +395,7 @@ class Server(Interface):
         :return: Response object
         """
         return self.send(Request(Command.INSTANCE_EDIT)
-                         .add_parameters(**instance_properties))
+                         .add_parameters(**properties))
 
     def binding_list(self):
         """
@@ -410,9 +409,9 @@ class Server(Interface):
         """
         return self.send(Request(Command.BINDING_LIST))
 
-    def use(self, server_id=None, port=None, virtual=False):
+    def use(self, id=None, port=None, virtual=False):
         """
-        Selects the virtual server specified with *sid* or *port* to allow
+        Selects the virtual server specified with *id* or *port* to allow
         further interaction. The ServerQuery client will appear on the virtual
         server and acts like a real TeamSpeak 3 Client, except it's unable to
         send or receive voice data.
@@ -422,8 +421,8 @@ class Server(Interface):
         ServerQuery method: use [sid={serverID}] [port={serverPort}] [-virtual]
         ServerQuery method: use {serverID} [-virtual]
 
-        :type server_id: int
-        :param server_id: Server ID
+        :type id: int
+        :param id: Server ID
         :type port: int
         :param port: Server port
         :type virtual: bool
@@ -432,9 +431,9 @@ class Server(Interface):
         :rtype: :class:`tslib.response.Response`
         :return: Response object
         """
-        if server_id:
+        if id:
             return self.send(Request(Command.USE)
-                             .add_parameter("sid", server_id)
+                             .add_parameter("sid", id)
                              .add_option("virtual", virtual))
         return self.send(Request(Command.USE)
                          .add_parameter("port", port)
@@ -443,21 +442,21 @@ class Server(Interface):
     def server_list(self, unique_id=False, short=False, all=False,
                     only_offline=False):
         """
-        Displays a list of virtual servers including their ID, status, number of
-        clients online, etc. If you're using the *-all* option, the server will
-        list all virtual servers stored in the database. This can be useful when
-        multiple server instances with different machine IDs are using the same
-        database. The machine ID is used to identify the server instance a
-        virtual server is associated with.
+        Displays a list of virtual servers including their ID, status, number
+        of clients online, etc. If you're using the *-all* option, the server
+        will list all virtual servers stored in the database. This can be
+        useful when multiple server instances with different machine IDs are
+        using the same database. The machine ID is used to identify the server
+        instance a virtual server is associated with.
         The status of a virtual server can be either online, offline, deploy
         running, booting up, shutting down and virtual online. While most of
         them are self-explanatory, virtual online is a bit more complicated.
-        Please note that whenever you select a virtual server which is currently
-        stopped, it will be started in virtual mode which means you are able to
-        change its configuration, create channels or change permissions, but no
-        regular TeamSpeak 3 Client can connect. As soon as the last ServerQuery
-        client deselects the virtual server, its status will be changed back to
-        offline.
+        Please note that whenever you select a virtual server which is
+        currently stopped, it will be started in virtual mode which means you
+        are able to change its configuration, create channels or change
+        permissions, but no regular TeamSpeak 3 Client can connect. As soon as
+        the last ServerQuery client deselects the virtual server, its status
+        will be changed back to offline.
 
         ServerQuery method: serverlist [-uid] [-short] [-all] [-onlyoffline]
 
@@ -479,44 +478,44 @@ class Server(Interface):
                          .add_option("all", all)
                          .add_option("onlyoffline", only_offline))
 
-    def server_id_get_by_port(self, virtual_server_port):
+    def server_id_get_by_port(self, port):
         """
         Displays the database ID of the virtual server running on the UDP port
-        specified by *virtual_server_port*.
+        specified by *port*.
 
         ServerQuery method: serveridgetbyport virtualserver_port={serverPort}
 
-        :type virtual_server_port: int
-        :param virtual_server_port: Server port
+        :type port: int
+        :param port: Server port
 
         :rtype: :class:`tslib.response.Response`
         :return: Response object
         """
         return self.send(Request(Command.SERVER_ID_GET_BY_PORT)
                          .add_parameter("virtualserver_port",
-                                        virtual_server_port))
+                                        port))
 
-    def server_delete(self, server_id):
+    def server_delete(self, id):
         """
-        Deletes the virtual server specified with *sid*. Please note that only
+        Deletes the virtual server specified with *id*. Please note that only
         virtual servers in stopped state can be deleted.
 
         ServerQuery method: serverdelete sid={serverID}
 
-        :type server_id: int
-        :param server_id: Server ID
+        :type id: int
+        :param id: Server ID
 
         :rtype: :class:`tslib.response.Response`
         :return: Response object
         """
         return self.send(Request(Command.SERVER_DELETE)
-                         .add_parameter("sid", server_id))
+                         .add_parameter("sid", id))
 
-    def server_create(self, virtual_server_name, **virtual_server_properties):
+    def server_create(self, name, **properties):
         """
         Creates a new virtual server using the given properties and displays
         its ID, port and initial administrator privilege key. If
-        *virtual_server_port* is not specified, the server will test for the
+        *virtualserver_port* is not specified, the server will test for the
         first unused UDP port.
         The first virtual server will be running on UDP port 9987 by default.
         Subsequently started virtual servers will be running on increasing UDP
@@ -525,50 +524,50 @@ class Server(Interface):
         ServerQuery method: servercreate virtualserver_name={serverName}
         [virtualserver_properties…]
 
-        :type virtual_server_name: str
-        :param virtual_server_name: Server name
+        :type name: str
+        :param name: Server name
 
         :rtype: :class:`tslib.response.Response`
         :return: Response object
         """
         return self.send(Request(Command.SERVER_CREATE)
                          .add_parameter("virtualserver_name",
-                                        virtual_server_name)
-                         .add_parameters(**virtual_server_properties))
+                                        name)
+                         .add_parameters(**properties))
 
-    def server_start(self, server_id):
+    def server_start(self, id):
         """
-        Starts the virtual server specified with *sid*. Depending on your
+        Starts the virtual server specified with *id*. Depending on your
         permissions, you're able to start either your own virtual server only
         or all virtual servers in the server instance.
 
         ServerQuery method: serverstart sid={serverID}
 
-        :type server_id: int
-        :param server_id: Server ID
+        :type id: int
+        :param id: Server ID
 
         :rtype: :class:`tslib.response.Response`
         :return: Response object
         """
         return self.send(Request(Command.SERVER_START)
-                         .add_parameter("sid", server_id))
+                         .add_parameter("sid", id))
 
-    def server_stop(self, server_id):
+    def server_stop(self, id):
         """
-        Stops the virtual server specified with *sid*. Depending on your
+        Stops the virtual server specified with *id*. Depending on your
         permissions, you're able to stop either your own virtual server only or
         all virtual servers in the server instance.
 
         ServerQuery method: serverstop sid={serverID}
 
-        :type server_id: int
-        :param server_id: Server ID
+        :type id: int
+        :param id: Server ID
 
         :rtype: :class:`tslib.response.Response`
         :return: Response object
         """
         return self.send(Request(Command.SERVER_STOP)
-                         .add_parameter("sid", server_id))
+                         .add_parameter("sid", id))
 
     def server_process_stop(self):
         """
@@ -610,11 +609,11 @@ class Server(Interface):
     def server_temp_password_add(self, password, description, duration,
                                  channel_id=0, channel_password=""):
         """
-        Sets a new temporary server password specified with *pw*. The temporary
-        password will be valid for the number of seconds specified with
-        duration. The client connecting with this password will automatically
-        join the channel specified with *channel_id*. If *channel_id* is set to
-        0, the client will join the default channel.
+        Sets a new temporary server password specified with *password*. The
+        temporary password will be valid for the number of seconds specified
+        with *duration*. The client connecting with this password will
+        automatically join the channel specified with *channel_id*. If
+        *channel_id* is set to 0, the client will join the default channel.
 
         ServerQuery method: servertemppasswordadd pw={password}
         desc={description} duration={seconds} tcid={channelID} tcpw={channelPW}
@@ -668,7 +667,7 @@ class Server(Interface):
         """
         return self.send(Request(Command.SERVER_TEMP_PASSWORD_LIST))
 
-    def server_edit(self, **virtual_server_properties):
+    def server_edit(self, **properties):
         """
         Changes the selected virtual servers configuration using given
         properties. Note that this command accepts multiple properties which
@@ -682,7 +681,7 @@ class Server(Interface):
         """
         # TODO: Check for the existence of properties
         return self.send(Request(Command.SERVER_EDIT)
-                         .add_parameters(**virtual_server_properties))
+                         .add_parameters(**properties))
 
     def server_group_list(self):
         """
@@ -717,16 +716,15 @@ class Server(Interface):
                          .add_parameter("name", name)
                          .add_parameter("type", type))
 
-    def server_group_del(self, server_group_id, force=False):
+    def server_group_del(self, id, force=False):
         """
-        Deletes the server group specified with *server_group_id*. If *force*
-        is set to 1, the server group will be deleted even if there are clients
-        within.
+        Deletes the server group specified with *id*. If *force* is set to 1,
+        the server group will be deleted even if there are clients within.
 
         ServerQuery method: servergroupdel sgid={groupID} force={1|0}
 
-        :type server_group_id: int
-        :param server_group_id: Group ID
+        :type id: int
+        :param id: Group ID
         :type force: bool
         :param force:
 
@@ -734,26 +732,24 @@ class Server(Interface):
         :return: Response object
         """
         return self.send(Request(Command.SERVER_GROUP_DEL)
-                         .add_parameter("sgid", server_group_id)
+                         .add_parameter("sgid", id)
                          .add_parameter("force", force))
 
-    def server_group_copy(self, source_server_group_id, target_server_group_id,
-                          name, type):
+    def server_group_copy(self, source_id, target_id, name, type):
         """
-        Creates a copy of the server group specified with
-        *source_server_group_id*. If *target_server_group_id* is set to 0, the
-        server will create a new group.
-        To overwrite an existing group, simply set *tsgid* to the ID of a
+        Creates a copy of the server group specified with *source_id*. If
+        *target_id* is set to 0, the server will create a new group.
+        To overwrite an existing group, simply set *target_id* to the ID of a
         designated target group. If a target group is set, the *name* parameter
         will be ignored.
 
         ServerQuery method: servergroupcopy ssgid={sourceGroupID}
         tsgid={targetGroupID} name={groupName} type={groupDbType}
 
-        :type source_server_group_id: int
-        :param source_server_group_id: Source group ID
-        :type target_server_group_id: int
-        :param target_server_group_id: Target group ID
+        :type source_id: int
+        :param source_id: Source group ID
+        :type target_id: int
+        :param target_id: Target group ID
         :type name: str
         :param name: Group name
         :type type: int|:class:`tslib.server.PermissionGroupDatabaseTypes`
@@ -763,19 +759,19 @@ class Server(Interface):
         :return: Response object
         """
         return self.send(Request(Command.SERVER_GROUP_COPY)
-                         .add_parameter("ssgid", source_server_group_id)
-                         .add_parameter("tsgid", target_server_group_id)
+                         .add_parameter("ssgid", source_id)
+                         .add_parameter("tsgid", target_id)
                          .add_parameter("name", name)
                          .add_parameter("type", type))
 
-    def server_group_rename(self, server_group_id, name):
+    def server_group_rename(self, id, name):
         """
-        Changes the name of the server group specified with *server_group_id*.
+        Changes the name of the server group specified with *id*.
 
         ServerQuery method: servergrouprename sgid={groupID} name={groupName}
 
-        :type server_group_id: int
-        :param server_group_id: Group ID
+        :type id: int
+        :param id: Group ID
         :type name: str
         :param name: Group name
 
@@ -783,85 +779,84 @@ class Server(Interface):
         :return: Response object
         """
         return self.send(Request(Command.SERVER_GROUP_RENAME)
-                         .add_parameter("sgid", server_group_id)
+                         .add_parameter("sgid", id)
                          .add_parameter("name", name))
 
-    def server_group_perm_list(self, server_group_id, permissions_id=False):
+    def server_group_perm_list(self, id, permission_string_id=False):
         """
         Displays a list of permissions assigned to the server group specified
-        with *server_group_id*. If the *–permissions_id* option is specified,
-        the output will contain the permission names instead of the internal
+        with *id*. If the *-permission_string_id* option is specified, the
+        output will contain the permission names instead of the internal
         IDs.
 
         ServerQuery method: servergrouppermlist sgid={groupID} [-permsid]
 
-        :type server_group_id: int
-        :param server_group_id: Group ID
-        :type permissions_id: bool
-        :param permissions_id:
+        :type id: int
+        :param id: Group ID
+        :type permission_string_id: bool
+        :param permission_string_id:
 
         :rtype: :class:`tslib.response.Response`
         :return: Response object
         """
         return self.send(Request(Command.SERVER_GROUP_PERM_LIST)
-                         .add_parameter("sgid", server_group_id)
-                         .add_option("permsid", permissions_id))
+                         .add_parameter("sgid", id)
+                         .add_option("permsid", permission_string_id))
 
-    def server_group_add_perm(self, server_group_id, permissions_set):
+    def server_group_add_perm(self, id, permissions_set):
         """
         Adds a set of specified permissions to the server group specified with
-        *server_group_id*. Multiple permissions can be added by providing the
-        four parameters of each permission. A permission can be specified by
+        *id*. Multiple permissions can be added by providing the four
+        parameters of each permission. A permission can be specified by
         *permid* or *permsid*.
 
         ServerQuery method: servergroupaddperm sgid={groupID}
         [permid={permID}…] [permsid={permName}…] permvalue={permValue}…
         permnegated={1|0}… permskip={1|0}…
 
-        :type server_group_id: int
-        :param server_group_id: Group ID
-        :type permissions_set: dict
+        :type id: int
+        :param id: Group ID
+        :type permissions_set: list of dicts
         :param permissions_set:
 
         :rtype: :class:`tslib.response.Response`
         :return: Response object
         """
         return self.send(Request(Command.SERVER_GROUP_ADD_PERM)
-                         .add_parameter("sgid", server_group_id)
+                         .add_parameter("sgid", id)
                          .add_list_of_parameters(permissions_set))
 
-    def server_group_del_perm(self, server_group_id, permissions_set):
+    def server_group_del_perm(self, id, permissions_set):
         """
         Removes a set of specified permissions from the server group specified
-        with *sgid*. Multiple permissions can be removed at once. A permission
+        with *id*. Multiple permissions can be removed at once. A permission
         can be specified by *permid* or *permsid*.
 
         ServerQuery method: servergroupdelperm sgid={groupID}
         [permid={permID}…] [permsid={permName}…]
 
-        :type server_group_id: int
-        :param server_group_id: Group ID
-        :type permissions_set: dict
+        :type id: int
+        :param id: Group ID
+        :type permissions_set: list of dicts
         :param permissions_set:
 
         :rtype: :class:`tslib.response.Response`
         :return: Response object
         """
         return self.send(Request(Command.SERVER_GROUP_DEL_PERM)
-                         .add_parameter("sgid", server_group_id)
+                         .add_parameter("sgid", id)
                          .add_list_of_parameters(permissions_set))
 
-    def server_group_add_client(self, server_group_id, client_db_id):
+    def server_group_add_client(self, id, client_db_id):
         """
-        Adds a client to the server group specified with *server_group_id*.
-        Please note that a client cannot be added to default groups or template
-        groups.
+        Adds a client to the server group specified with *id*. Please note that
+        a client cannot be added to default groups or template groups.
 
         ServerQuery method: servergroupaddclient sgid={groupID}
         cldbid={clientDBID}
 
-        :type server_group_id: int
-        :param server_group_id: Group ID
+        :type id: int
+        :param id: Group ID
         :type client_db_id: int
         :param client_db_id: Client DB ID
 
@@ -869,19 +864,19 @@ class Server(Interface):
         :return: Response object
         """
         return self.send(Request(Command.SERVER_GROUP_ADD_CLIENT)
-                         .add_parameter("sgid", server_group_id)
+                         .add_parameter("sgid", id)
                          .add_parameter("cldbid", client_db_id))
 
-    def server_group_del_client(self, server_group_id, client_db_id):
+    def server_group_del_client(self, id, client_db_id):
         """
         Removes a client specified with *client_db_id* from the server group
-        specified with *server_group_id*.
+        specified with *id*.
 
         ServerQuery method: servergroupdelclient sgid={groupID}
         cldbid={clientDBID}
 
-        :type server_group_id: int
-        :param server_group_id: Group ID
+        :type id: int
+        :param id: Group ID
         :type client_db_id: int
         :param client_db_id: Client DB ID
 
@@ -889,20 +884,20 @@ class Server(Interface):
         :return: Response object
         """
         return self.send(Request(Command.SERVER_GROUP_DEL_CLIENT)
-                         .add_parameter("sgid", server_group_id)
+                         .add_parameter("sgid", id)
                          .add_parameter("cldbid", client_db_id))
 
-    def server_group_client_list(self, server_group_id, names=False):
+    def server_group_client_list(self, id, names=False):
         """
         Displays the IDs of all clients currently residing in the server group
-        specified with *server_group_id*. If you're using the optional *-names*
-        option, the output will also contain the last known nickname and the
-        unique identifier of the clients.
+        specified with *id*. If you're using the optional *-names* option, the
+        output will also contain the last known nickname and the unique
+        identifier of the clients.
 
         ServerQuery method: servergroupclientlist sgid={groupID} [-names]
 
-        :type server_group_id: int
-        :param server_group_id: Group ID
+        :type id: int
+        :param id: Group ID
         :type names: bool
         :param names:
 
@@ -910,7 +905,7 @@ class Server(Interface):
         :return: Response object
         """
         return self.send(Request(Command.SERVER_GROUP_CLIENT_LIST)
-                         .add_parameter("sgid", server_group_id)
+                         .add_parameter("sgid", id)
                          .add_option("names", names))
 
     def server_groups_by_client_id(self, client_db_id):
@@ -929,7 +924,7 @@ class Server(Interface):
         return self.send(Request(Command.SERVER_GROUPS_BY_CLIENT_ID)
                          .add_parameter("cldbid", client_db_id))
 
-    def server_group_auto_add_perm(self, server_group_type, permission_value,
+    def server_group_auto_add_perm(self, type, permission_value,
                                    permission_negated=False,
                                    permission_skip=False, permission_id=None,
                                    permission_string_id=None):
@@ -937,9 +932,9 @@ class Server(Interface):
         Adds a set of specified permissions to *ALL* regular server groups on
         all virtual servers. The target groups will be identified by the value
         of their *i_group_auto_update_type* permission specified with
-        *server_group_type*. Multiple permissions can be added at once. A
-        permission can be specified by *permission_id* or
-        *permission_string_id*. The known values for *server_group_type* are:
+        *type*. Multiple permissions can be added at once. A permission can be
+        specified by *permission_id* or *permission_string_id*. The known
+        values for *type* are:
         10: Channel Guest
         15: Server Guest
         20: Query Guest
@@ -954,8 +949,8 @@ class Server(Interface):
         [permid={permID}…] [permsid={permName}…] permvalue={permValue}…
         permnegated={1|0}… permskip={1|0}…
 
-        :type server_group_type: int|:class:`tslib.server.GroupType`
-        :param server_group_type: Group type
+        :type type: int|:class:`tslib.server.GroupType`
+        :param type: Group type
         :type permission_id: int
         :param permission_id: Permission ID
         :type permission_string_id: str
@@ -976,28 +971,28 @@ class Server(Interface):
 
         if permission_id:
             return self.send(Request(Command.SERVER_GROUP_AUTO_ADD_PERM)
-                             .add_parameter("sgtype", server_group_type)
+                             .add_parameter("sgtype", type)
                              .add_parameter("permid", permission_id)
                              .add_parameter("permvalue", permission_value)
                              .add_parameter("permnegated", permission_negated)
                              .add_parameter("permsip", permission_skip))
         else:
             return self.send(Request(Command.SERVER_GROUP_AUTO_ADD_PERM)
-                             .add_parameter("sgtype", server_group_type)
+                             .add_parameter("sgtype", type)
                              .add_parameter("permsid", permission_string_id)
                              .add_parameter("permvalue", permission_value)
                              .add_parameter("permnegated", permission_negated)
                              .add_parameter("permsip", permission_skip))
 
-    def server_group_auto_del_perm(self, server_group_type, permission_id=None,
+    def server_group_auto_del_perm(self, type, permission_id=None,
                                    permission_string_id=None):
         """
         Removes a set of specified permissions from *ALL* regular server groups
         on all virtual servers. The target groups will be identified by the
         value of their *i_group_auto_update_type permission* specified with
-        *server_group_type*. Multiple permissions can be removed at once. A
-        permission can be specified by *permission_id* or
-        *permission_string_id*. The known values for *server_group_type*
+        *type*. Multiple permissions can be removed at once. A permission can
+        be specified by *permission_id* or *permission_string_id*. The known
+        values for *type*
         are:
         10: Channel Guest
         15: Server Guest
@@ -1012,6 +1007,13 @@ class Server(Interface):
         ServerQuery method: servergroupautodelperm sgtype={groupID}
         [permid={permID}…] [permsid={permName}…]
 
+        :type type: int|:class:`tslib.server.GroupType`
+        :param type: Group type
+        :type permission_id: int
+        :param permission_id: Permission ID
+        :type permission_string_id: str
+        :param permission_string_id: Permission name
+
         :rtype: :class:`tslib.response.Response`
         :return: Response object
         """
@@ -1021,11 +1023,11 @@ class Server(Interface):
 
         if permission_id:
             return self.send(Request(Command.SERVER_GROUP_AUTO_ADD_PERM)
-                             .add_parameter("sgtype", server_group_type)
+                             .add_parameter("sgtype", type)
                              .add_parameter("permid", permission_id))
         else:
             return self.send(Request(Command.SERVER_GROUP_AUTO_ADD_PERM)
-                             .add_parameter("sgtype", server_group_type)
+                             .add_parameter("sgtype", type)
                              .add_parameter("permsid", permission_string_id))
 
     def server_snapshot_create(self):
@@ -1044,7 +1046,7 @@ class Server(Interface):
         return self.send(Request(Command.SERVER_SNAPSHOT_CREATE))
 
     # TODO: Check, how it's should work, and then rewrite function
-    def server_snapshot_deploy(self, virtual_server_snapshot, mapping=False):
+    def server_snapshot_deploy(self, snapshot, mapping=False):
         """
         Restores the selected virtual servers configuration using the data from
         a previously created server snapshot.
@@ -1055,15 +1057,15 @@ class Server(Interface):
         ServerQuery method: serversnapshotdeploy [-mapping]
         virtualserver_snapshot
 
-        :type virtual_server_snapshot: str
-        :param virtual_server_snapshot:
+        :type snapshot: str
+        :param snapshot:
         :type mapping: bol
         :param mapping:
         :rtype: :class:`tslib.response.Response`
         :return: Response object
         """
         return self.send(Request(Command.SERVER_SNAPSHOT_DEPLOY)
-                         .add_parameter(None, virtual_server_snapshot)
+                         .add_parameter(None, snapshot)
                          .add_option("mapping", mapping))
 
     def server_notify_register(self, event, id=None):
@@ -1201,11 +1203,14 @@ class Server(Interface):
                          .add_parameter("msg", msg))
 
     def channel_list(self, topic=False, flags=False, voice=False, limits=False,
-                     icon=False):
+                     icon=False, seconds_empty=False):
         """
         Displays a list of channels created on a virtual server including their
         ID, order, name, etc. The output can be modified using several command
         options.
+
+        ServerQuery method: channellist [-topic] [-flags] [-voice] [-limits]
+        [-icon] [-secondsempty]
 
         :type topic: bool
         :param topic:
@@ -1217,6 +1222,8 @@ class Server(Interface):
         :param limits:
         :type icon: bool
         :param icon:
+        :type seconds_empty: bool
+        :param seconds_empty:
 
         :rtype: :class:`tslib.response.Response`
         :return: Response object
@@ -1226,95 +1233,374 @@ class Server(Interface):
                          .add_option("flags", flags)
                          .add_option("voice", voice)
                          .add_option("limits", limits)
-                         .add_option("icon", icon))
+                         .add_option("icon", icon)
+                         .add_option("secondsempty", seconds_empty))
 
-    def channel_info(self, cid):
+    def channel_info(self, id):
         """
         Displays detailed configuration information about a channel including
         ID, topic, description, etc
 
-        :type cid: int
-        :param cid:
+        ServerQuery method: channelinfo cid={channelID}
+
+        :type id: int
+        :param id:
 
         :rtype: :class:`tslib.response.Response`
         :return: Response object
         """
         return self.send(Request(Command.CHANNEL_INFO)
-                         .add_parameter("cid", cid))
+                         .add_parameter("cid", id))
 
-    # TODO: Implement functionality
-    def channel_find(self):
-        raise NotImplementedError
+    def channel_find(self, pattern):
+        """
+        Displays a list of channels matching a given name pattern.
 
-    # TODO: Implement functionality
-    def channel_move(self):
-        raise NotImplementedError
+        ServerQuery method: channelfind pattern={channelName}
 
-    # TODO: Implement functionality
-    def channel_create(self):
-        raise NotImplementedError
+        :type pattern: str
+        :param pattern: Channel name
 
-    # TODO: Implement functionality
-    def channel_delete(self):
-        raise NotImplementedError
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.CHANNEL_FIND)
+                         .add_parameter("pattern", pattern))
 
-    # TODO: Implement functionality
-    def channel_edit(self):
-        raise NotImplementedError
+    def channel_move(self, id, parent_id, order):
+        """
+        Moves a channel to a new parent channel with the ID *parent_id*. If
+        *order* is specified, the channel will be sorted right under the
+        channel with the specified ID. If *order* is set to 0, the channel will
+        be sorted right below the new parent.
 
-    # TODO: Implement functionality
+        ServerQuery method: channelmove cid={channelID} cpid={channelParentID}
+        [order={channelSortOrder}]
+
+        :type id: int
+        :param id: Channel ID
+        :type parent_id: int
+        :param parent_id: Parent channel ID
+        :type order: int
+        :param order: Channel sort order
+
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.CHANNEL_MOVE)
+                         .add_parameter("cid", id)
+                         .add_parameter("cpid", parent_id)
+                         .add_parameter("order", order))
+
+    def channel_create(self, name, **properties):
+        """
+        Creates a new channel using the given properties and displays its ID.
+        Note that this command accepts multiple properties which means that
+        you're able to specify all settings of the new channel at once.
+
+        ServerQuery method: channelcreate channel_name={channelName}
+        [channel_properties…]
+
+        :type name: str
+        :param name: Channel name
+        :type properties: dict
+        :param properties: Channel properties
+
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.CHANNEL_CREATE)
+                         .add_parameter("channel_name", name)
+                         .add_parameters(**properties))
+
+    def channel_delete(self, id, force=False):
+        """
+        Deletes an existing channel by ID. If *force* is set to 1, the channel
+        will be deleted even if there are clients within. The clients will be
+        kicked to the default channel with an appropriate reason message.
+
+        ServerQuery method: channeldelete cid={channelID} force={1|0}
+
+        :type id: int
+        :param id: Channel ID
+        :type force: bool
+        :param force:
+
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.CHANNEL_DELETE)
+                         .add_parameter("cid", id)
+                         .add_parameter("force", force))
+
+    def channel_edit(self, id, **properties):
+        """
+        Changes a channels configuration using given properties. Note that this
+        command accepts multiple properties which means that you're able to
+        change all settings of the channel specified with cid at once.
+
+        ServerQuery method: channeledit cid={channelID} [channel_properties…]
+
+        :type id: int
+        :param id: Channel ID
+        :type properties: dict
+        :param properties: Channel properties
+
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.CHANNEL_EDIT)
+                         .add_parameter("cid", id)
+                         .add_parameters(**properties))
+
     def channel_group_list(self):
-        raise NotImplementedError
+        """
+        Displays a list of channel groups available on the selected virtual
+        server.
 
-    # TODO: Implement functionality
-    def channel_group_add(self):
-        raise NotImplementedError
+        ServerQuery method: channelgrouplist
 
-    # TODO: Implement functionality
-    def channel_group_del(self):
-        raise NotImplementedError
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.CHANNEL_GROUP_LIST))
 
-    # TODO: Implement functionality
-    def channel_group_copy(self):
-        raise NotImplementedError
+    def channel_group_add(self, name, type):
+        """
+        Creates a new channel group using a given name and displays its ID. The
+        optional *type* parameter can be used to create template groups.
 
-    # TODO: Implement functionality
-    def channel_group_rename(self):
-        raise NotImplementedError
+        ServerQuery method: channelgroupadd name={groupName}
+        [type={groupDbType}]
 
-    # TODO: Implement functionality
-    def channel_group_add_perm(self):
-        raise NotImplementedError
+        :type name: str
+        :param name: Group name
+        :type type: int|:class:`tslib.server.PermissionGroupDatabaseTypes`
+        :param type: Channel group DB type
 
-    # TODO: Implement functionality
-    def channel_group_perm_list(self):
-        raise NotImplementedError
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.CHANNEL_GROUP_ADD)
+                         .add_parameter("name", name)
+                         .add_parameter("type", type))
 
-    # TODO: Implement functionality
-    def channel_group_del_perm(self):
-        raise NotImplementedError
+    def channel_group_del(self, id, force=False):
+        """
+        Deletes a channel group by ID. If *force* is set to 1, the channel
+        group will be deleted even if there are clients within.
+
+        ServerQuery method: channelgroupdel cgid={groupID} force={1|0}
+
+        :type id: int
+        :param id: Channel group ID
+        :type force: bool
+        :param force:
+
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.CHANNEL_GROUP_DEL)
+                         .add_parameter("cgid", id)
+                         .add_parameter("force", force))
+
+    def channel_group_copy(self, source_id, target_id, name, type):
+        """
+        Creates a copy of the channel group specified with *source_group_id*.
+        If *target_group_id* is set to 0, the server will create a new group.
+        To overwrite an existing group, simply set *target_group_id* to the ID
+        of a designated target group. If a target group is set, the *name*
+        parameter will be ignored. The *type* parameter can be used to create
+        template groups.
+
+        ServerQuery method: channelgroupcopy scgid={sourceGroupID}
+        tcgid={targetGroupID} name={groupName} type={groupDbType}
+
+        :type source_id: int
+        :param source_id: Source channel group ID
+        :type target_id: int
+        :param target_id: Target channel group ID
+        :type name: str
+        :param name: Channel group name
+        :type type: int|:class:`tslib.server.PermissionGroupDatabaseTypes`
+        :param type: Channel group DB type
+
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.CHANNEL_GROUP_COPY)
+                         .add_parameter("scgid", source_id)
+                         .add_parameter("tcgid", target_id)
+                         .add_parameter("name", name)
+                         .add_parameter("type", type))
+
+    def channel_group_rename(self, id, name):
+        """
+        Changes the name of a specified channel group.
+
+        ServerQuery method: channelgrouprename cgid={groupID} name={groupName}
+
+        :type id: int
+        :param id: Channel group ID
+        :type name: str
+        :param name: Channel group name
+
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.CHANNEL_GROUP_RENAME)
+                         .add_parameter("cgid", id)
+                         .add_parameter("name", name))
+
+    def channel_group_add_perm(self, id, permissions_set):
+        """
+        Adds a set of specified permissions to a channel group. Multiple
+        permissions can be added by providing the two parameters of each
+        permission. A permission can be specified by *permid* or *permsid*.
+
+        ServerQuery method: channelgroupaddperm cgid={groupID}
+        [permid={permID}…] [permsid={permName}…] permvalue={permValue}…
+
+        :type id: int
+        :param id: Channel group ID
+        :type permissions_set: list of dicts
+        :param permissions_set:
+
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.CHANNEL_GROUP_ADD_PERM)
+                         .add_parameter("cgid", id)
+                         .add_list_of_parameters(permissions_set))
+
+    def channel_group_perm_list(self, id, permission_string_id=False):
+        """
+        Displays a list of permissions assigned to the channel group specified
+        with *id*. If the *-permission_string_id* option is specified, the
+        output will contain the permission names instead of the internal IDs.
+
+        ServerQuery method: channelgrouppermlist cgid={groupID} [-permsid]
+
+        :type id: int
+        :param id: Channel group ID
+        :type permission_string_id: bool
+        :param permission_string_id:
+
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.CHANNEL_GROUP_PERM_LIST)
+                         .add_parameter("cgid", id)
+                         .add_option("permsid", permission_string_id))
+
+    def channel_group_del_perm(self, id, permissions_set):
+        """
+        Removes a set of specified permissions from the channel group. Multiple
+        permissions can be removed at once. A permission can be specified by
+        *permid* or *permsid*.
+
+        ServerQuery method: channelgroupdelperm cgid={groupID}
+        [permid={permID}…] [permsid={permName}…]
+
+        :type id: int
+        :param id: Channel group ID
+        :type permissions_set: list of dicts
+        :param permissions_set:
+
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.CHANNEL_GROUP_DEL_PERM)
+                         .add_parameter("cgid", id)
+                         .add_list_of_parameters(permissions_set))
 
     # TODO: Implement functionality
     def channel_group_client_list(self):
         raise NotImplementedError
 
-    # TODO: Implement functionality
-    def set_client_channel_group(self):
-        raise NotImplementedError
+    def set_client_channel_group(self, group_id, channel_id, client_db_id):
+        """
+        Sets the channel group of a client to the ID specified with *group_id*.
 
-    # TODO: Implement functionality
-    def channel_perm_list(self):
-        raise NotImplementedError
+        ServerQuery method: setclientchannelgroup cgid={groupID}
+        cid={channelID} cldbid={clientDBID}
 
-    # TODO: Implement functionality
-    def channel_add_perm(self):
-        raise NotImplementedError
+        :type group_id: int
+        :param group_id: Channel group ID
+        :type channel_id: int
+        :param channel_id: Channel ID
+        :type client_db_id: int
+        :param client_db_id: Client DB ID
 
-    # TODO: Implement functionality
-    def channel_del_perm(self):
-        raise NotImplementedError
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.SET_CLIENT_CHANNEL_GROUP)
+                         .add_parameter("cgid", group_id)
+                         .add_parameter("cid", channel_id)
+                         .add_parameter("cldbid", client_db_id))
 
-    def client_list(self, uid=False, away=False, voice=False, times=False,
+    def channel_perm_list(self, id, permission_string_id=False):
+        """
+        Displays a list of permissions defined for a channel.
+
+        ServerQuery method: channelpermlist cid={channelID} [-permsid]
+
+        :type id: int
+        :param id: Channel ID
+        :type permission_string_id: bool
+        :param permission_string_id:
+
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.CHANNEL_PERM_LIST)
+                         .add_parameter("cid", id)
+                         .add_option("permsid", permission_string_id))
+
+    def channel_add_perm(self, id, permissions_set):
+        """
+        Adds a set of specified permissions to a channel. Multiple permissions
+        can be added by providing the two parameters of each permission. A
+        permission can be specified by *permid* or *permsid*.
+
+        ServerQuery method: channeladdperm cid={channelID} [permid={permID}…]
+        [permsid={permName}…] permvalue={permValue}…
+
+        :type id: int
+        :param id: Channel ID
+        :type permissions_set: list of dicts
+        :param permissions_set:
+
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.CHANNEL_ADD_PERM)
+                         .add_parameter("cid", id)
+                         .add_list_of_parameters(permissions_set))
+
+    def channel_del_perm(self, id, permissions_set):
+        """
+        Removes a set of specified permissions from a channel. Multiple
+        permissions can be removed at once. A permission can be specified by
+        *permid* or *permsid*.
+
+        ServerQuery method: channeldelperm cid=123 [permid={permID}…]
+        [permsid={permName}…]
+
+        :type id: int
+        :param id: Channel ID
+        :type permissions_set: list of dicts
+        :param permissions_set:
+
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.CHANNEL_DEL_PERM)
+                         .add_parameter("cid", id)
+                         .add_list_of_parameters(permissions_set))
+
+    def client_list(self, unique_id=False, away=False, voice=False, times=False,
                     groups=False, info=False, icon=False, country=False):
         """
         Displays a list of clients online on a virtual server including their
@@ -1323,8 +1609,11 @@ class Server(Interface):
         Please note that the output will only contain clients which are
         currently in channels you're able to subscribe to.
 
-        :type uid: bool
-        :param uid:
+        ServerQuery method: clientlist [-uid] [-away] [-voice] [-times]
+        [-groups] [-info] [-country] [-ip] [-badges]
+
+        :type unique_id: bool
+        :param unique_id:
         :type away: bool
         :param away:
         :type voice: bool
@@ -1344,7 +1633,7 @@ class Server(Interface):
         :return: Response object
         """
         return self.send(Request(Command.CLIENT_LIST)
-                         .add_option("uid", uid)
+                         .add_option("uid", unique_id)
                          .add_option("away", away)
                          .add_option("voice", voice)
                          .add_option("times", times)
@@ -1353,59 +1642,192 @@ class Server(Interface):
                          .add_option("icon", icon)
                          .add_option("country", country))
 
-    def client_info(self, clid):
+    def client_info(self, id):
         """
         Displays detailed configuration information about a client including
         unique ID, nickname, client version, etc
 
-        :type clid: int
-        :param clid:
+        ServerQuery method: clientinfo clid={clientID}
+
+        :type id: int
+        :param id:
 
         :rtype: :class:`tslib.response.Response`
         :return: Response object
         """
         return self.send(Request(Command.CLIENT_INFO)
-                         .add_parameter("clid", clid))
+                         .add_parameter("clid", id))
 
-    # TODO: Implement functionality    # TODO
-    def client_find(self):
-        raise NotImplementedError
+    def client_find(self, pattern):
+        """
+        Displays a list of clients matching a given name pattern.
 
-    # TODO: Implement functionality
-    def client_edit(self):
-        raise NotImplementedError
+        ServerQuery method: clientfind pattern={clientName}
 
-    # TODO: Implement functionality
-    def client_db_list(self):
-        raise NotImplementedError
+        :type pattern: str
+        :param pattern: Client name
 
-    # TODO: Implement functionality
-    def client_db_info(self):
-        raise NotImplementedError
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.CLIENT_FIND)
+                         .add_parameter("pattern", pattern))
 
-    # TODO: Implement functionality
-    def client_db_find(self):
-        raise NotImplementedError
+    def client_edit(self, id, **properties):
+        """
+        Changes a clients settings using given properties.
 
-    # TODO: Implement functionality
-    def client_db_edit(self):
-        raise NotImplementedError
+        ServerQuery method: clientedit clid={clientID} [client_properties…]
 
-    # TODO: Implement functionality
-    def client_db_delete(self):
-        raise NotImplementedError
+        :type id: int
+        :param id: Client ID
 
-    # TODO: Implement functionality
-    def client_get_ids(self):
-        raise NotImplementedError
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.CLIENT_EDIT)
+                         .add_parameter("clid", id)
+                         .add_parameters(**properties))
 
-    # TODO: Implement functionality
-    def client_get_db_id_from_uid(self):
-        raise NotImplementedError
+    def client_db_list(self, start=None, duration=None, count=False):
+        """
+        Displays a list of client identities known by the server including
+        their database ID, last nickname, etc.
 
-    # TODO: Implement functionality
-    def client_get_name_from_uid(self):
-        raise NotImplementedError
+        ServerQuery method: clientdblist [start={offset}] [duration={limit}]
+        [-count]
+
+        :type start: int
+        :param start: Offset
+        :type duration: int
+        :param duration: Limit
+        :type count: bool
+        :param count:
+
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.CLIENT_DB_LIST)
+                         .add_parameter("start", start)
+                         .add_parameter("duration", duration)
+                         .add_option("count", count))
+
+    def client_db_info(self, id):
+        """
+        Displays detailed database information about a client including unique
+        ID, creation date, etc.
+
+        ServerQuery method: clientdbinfo cldbid={clientDBID}
+
+        :type id: int
+        :param id: Client DB ID
+
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.CLIENT_DB_INFO)
+                         .add_parameter("cldbid", id))
+
+    def client_db_find(self, pattern, unique_id=False):
+        """
+        Displays a list of client database IDs matching a given pattern. You
+        can either search for a clients last known nickname or his unique
+        identity by using the *-unique_id* option. The pattern parameter can
+        include regular characters and SQL wildcard characters (e.g. %).
+
+        ServerQuery method: clientdbfind pattern={clientName|clientUID} [-uid]
+
+        :type pattern: str
+        :param pattern: Client name | Client Unique ID
+        :type unique_id: bool
+        :param unique_id:
+
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.CLIENT_DB_FIND)
+                         .add_parameter("pattern", pattern)
+                         .add_option("uid", unique_id))
+
+    def client_db_edit(self, id, **properties):
+        """
+        Changes a clients settings using given properties.
+
+        ServerQuery method: clientdbedit cldbid={clientDBID}
+        [client_properties…]
+
+        :type id: int
+        :param id: Client DB ID
+
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.CLIENT_DB_EDIT)
+                         .add_parameter("cldbid", id)
+                         .add_parameters(**properties))
+
+    def client_db_delete(self, id):
+        """
+        Deletes a clients properties from the database.
+
+        ServerQuery method: clientdbdelete cldbid={clientDBID}
+
+        :type id: int
+        :param id: Client DB ID
+
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.CLIENT_DB_DELETE)
+                         .add_parameter("cldbid", id))
+
+    def client_get_ids(self, unique_id):
+        """
+        Displays all client IDs matching the unique identifier specified by
+        *unique_id*.
+
+        ServerQuery method: clientgetids cluid={clientUID}
+
+        :type unique_id: str
+        :param unique_id: Client Unique ID
+
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.CLIENT_GET_IDS)
+                         .add_parameter("cluid", unique_id))
+
+    def client_get_db_id_from_uid(self, unique_id):
+        """
+        Displays the database ID matching the unique identifier specified by
+        *unique_id*.
+
+        ServerQuery method: clientgetdbidfromuid cluid={clientUID}
+
+        :type unique_id: str
+        :param unique_id: Client Unique ID
+
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.CLIENT_GET_DB_ID_FROM_UID)
+                         .add_parameter("cluid", unique_id))
+
+    def client_get_name_from_uid(self, unique_id):
+        """
+        Displays the database ID and nickname matching the unique identifier
+        specified by *unique_id*.
+
+        ServerQuery method: clientgetnamefromuid cluid={clientUID}
+
+        :type unique_id: str
+        :param unique_id: Client Unique ID
+
+        :rtype: :class:`tslib.response.Response`
+        :return: Response object
+        """
+        return self.send(Request(Command.CLIENT_GET_NAME_FROM_UID)
+                         .add_parameter("cluid", unique_id))
 
     # TODO: Implement functionality
     def client_get_name_from_db_id(self):
@@ -1599,6 +2021,8 @@ class Server(Interface):
         """
         Displays information about your current ServerQuery connection
         including your loginname, etc
+
+        ServerQuery method: whoami
 
         :rtype: :class:`tslib.response.Response`
         :return: Request object

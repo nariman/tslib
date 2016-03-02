@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """
-TeamSpeak 3 Python Library
+TeamSpeak 3 Server/Client Query Python Interface
 tslib.connection.
 
 The MIT License (MIT)
@@ -52,7 +52,7 @@ class Connection:
     Connection class for TeamSpeak 3 servers/clients
     """
     __metaclass__ = type
-    
+
     CONNECTION_TIMEOUT = 1
     KEEP_ALIVE_INTERVAL = 300
 
@@ -306,7 +306,7 @@ class Interface:
     TeamSpeak 3 Request Connection Interface
     """
     __metaclass__ = type
-    
+
     RECV_DAEMON_INTERVAL = 0.1
 
     class Request(event_cls):

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """
-TeamSpeak 3 Python Library
+TeamSpeak 3 Server/Client Query Python Interface
 tslib.server.
 
 The MIT License (MIT)
